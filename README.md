@@ -134,7 +134,7 @@ npm run build
 3) do not exit the running webpack command, leave it running and make the changes you wish to you JS files, once you save the changes webpack will automatically run the bundle, to see
 the changes on index,html reload the broweser.
 
-USING WEBPACK's DEV SERVER AND HOT RELOADING THE BROWSER:
+USING WEBPACK's DEV SERVER:
 ===========================================================================
 ===========================================================================
 
@@ -150,13 +150,18 @@ instead of the http protocal, to use the http protocal we will need to serve the
 npm install webpack-dev-server --save-dev 
 ======
 
-2) from within the project directory run:
+2) run the npm command:
+
+======
+npm run build
+======
+
+
+3) from within the project directory run:
 
 =====
 webpack-dev-server
 =====
-
-you will notice that the webpack server actually executed the webpack bundle.js creation.
 
 3) Now we can change the url to: http://localhost:8080/ we can also use: http://localhost:8080/webpack-dev-server/ this will display a status bar on top of the page, the server also
 has a hot relod feature, this means you don't have to hit the reload button to see the changes, but it won't open the broweser for you.
@@ -176,12 +181,11 @@ module.exports = {
 }
 ======
 
-LOADERS FOR TRANSPILING ES6 TO ES5 AND LINTING:
+LOADERS FOR TRANSPILING ES6 TO ES5:
 ===========================================================================
 ===========================================================================
 
-With loaders we can process files and change them into something else, for example we can use webpack loaders to change es6 files into es5, and we can also use jshint
-to look for errors in our files without changing them, jshint will just inform us about the errors.
+With loaders we can process files and change them into something else, for example we can use webpack loaders to change es6 files into es5.
 
 before using babel we have to install it:
 
@@ -204,19 +208,7 @@ Now we are ready to use babel with webpack.
 Now to use our loaders for transpiling:
 ======================================
 
-1) change the login.js file to an es6 file by renaming it to login.es6 and put this code in it:
-
-======
-let login = (username, password) => {
-    if(username !== 'admin' || password !=='radical') {
-        console.log('incorrect password');
-    }
-};
-
-login('admin', 'wrongpass');
-======
-
-2) open the webpack config file and add the key "module" with an array called "rules", as follows:
+1) open the webpack config file and add the key "module" with an array called "rules", as follows:
 
 ======
 var webpack = require('webpack');
@@ -236,17 +228,67 @@ module.exports = {
       }
     ]
   },
-  watch: true
+  watch: false
 };
 ======
 
-3) run the webpack dev server by typing: "webpack-dev-server"
+2) run the npm command:
 
-Now to use our preloaders for linting:
-======================================
+======
+npm run build
+======
 
-preloaders run before the loader.
 
+3) run the webpack dev server from the command prompt:
+
+======
+webpack-dev-server
+======
+
+
+LOADERS FOR PROCESSING CSS:
+===========================================================================
+===========================================================================
+
+1) fist we have to install the css-loaders to teach webpack how to process css files.
+
+2) then we have to install style-loader so that webpack is able to inject them into the html files.
+
+======
+npm install --save-dev css-loader style-loader
+======
+
+3) Then we have to configure webpack.config.js to process every css file with both the css-loader and the style-loader
+
+======
+var webpack = require('webpack');
+var path = require('path');
+
+module.exports = {
+  entry: './src/index.js',
+  output: {
+    path: path.join(__dirname, 'build'),
+    filename: 'bundle.js'
+  },
+  module: {
+    rules: [
+      {
+        use: 'babel-loader', //here we are selecting the loader 
+        test: /\.js$/ //and here we specify which file the loader will process 
+      },
+      {
+        use: ['style-loader', 'css-loader'],
+        test: /\.css$/ //now any css file will be processed with both css and style loader
+      }
+    ]
+  },
+  watch: false
+};
+======
+
+4) run: npm run build
+
+5) run: webpack-dev-server
 
 
 
