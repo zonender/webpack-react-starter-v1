@@ -1,5 +1,5 @@
-const sum = require('./sum');
+import sum from './sum';
 
-const total = sum(1, 2);
+const total = sum(5, 15);
 
-console.log(total);
+document.write(total);

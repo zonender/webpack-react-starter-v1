@@ -83,14 +83,27 @@ filename: "bundle.js" is the output file that has includes all out JS code.
 2) to create our bundle.js all we have to do is to create an npm "build" script in the package.json file:
 
 ==========
-  "scripts": {
-    "build": "webpack"
-  },
+var webpack = require('webpack');
+var path = require('path');
+
+module.exports = {
+  entry: './src/index.js',
+  output: {
+    path: path.join(__dirname, 'build'),
+    filename: 'bundle.js'
+  }
+};
 ==========
 
 installing webpack or any other library globally will force your pc to look for the global installation of node_modules under your username folder in your pc, which could
 include a large number of modules and libraries, this might be slightly slower, it is best to install it locally using "npm install --save-dev" so that next time you run the command 
 npm will look only in our locally installed node_modules, this is faster.
+
+3) to see the html page run the command:
+
+======
+start index.html
+======
 
 USING WEBPACK IN WATCH MODE:
 ===========================================================================
@@ -99,19 +112,23 @@ USING WEBPACK IN WATCH MODE:
 1) add a key called watch in the webpack config:
 
 ===========
+var webpack = require('webpack');
+var path = require('path');
+
 module.exports = {
-	entry: "./app.js",
-	output: {
-		filename: "bundle.js"
-	},
-	watch: true
-}
+  entry: './src/index.js',
+  output: {
+    path: path.join(__dirname, 'build'),
+    filename: 'bundle.js'
+  },
+  watch: true
+};
 ===========
 
 2) run the command:
 
 ==========
-webpack
+npm run build
 ==========
 
 3) do not exit the running webpack command, leave it running and make the changes you wish to you JS files, once you save the changes webpack will automatically run the bundle, to see
@@ -130,10 +147,10 @@ instead of the http protocal, to use the http protocal we will need to serve the
 1) install the webpack dev server:
 
 ======
-npm install webpack-dev-server -g 
+npm install webpack-dev-server --save-dev 
 ======
 
-2) from withing the project directory run:
+2) from within the project directory run:
 
 =====
 webpack-dev-server
@@ -146,6 +163,8 @@ has a hot relod feature, this means you don't have to hit the reload button to s
 
 Remember webpack will automatically bundle all js files that are required/imported to app.js, and if other files are required in other files related to app.js those will be required as well
 but if there is a file that has no require statemnt or import statement then we have to explicitly mention it in the webpack config file as an array value under the entry key, like this:
+
+THIS IS JUST AN EXAMPLE NOT A FILE USED IN THIS PROJECT:
 
 ======
 module.exports = {
@@ -197,29 +216,28 @@ let login = (username, password) => {
 login('admin', 'wrongpass');
 ======
 
-2) open the webpack config file and edit it as follows:
+2) open the webpack config file and add the key "module" with an array called "rules", as follows:
 
 ======
+var webpack = require('webpack');
+var path = require('path');
+
 module.exports = {
-	entry: ["./utils", "./app.js"],
-	output: {
-		filename: "bundle.js"
-	},
-	watch: true,
-	module: {
-		loaders: [
-			{
-				test: /\.es6$/, //tests what kind of files to run/use through this loader
-				exclude: /node_modules/, //here we specify which files to exclude
-				loader: "babel-loader" //here we specifiy which loader we will user, from the package.json file
-			}
-		]
-	},
-	resolve: {
-		extensions: ['', '.js', '.es6']
-	}//here we specify which files we want to process without specifically giving them a file extension, by default 
-	//webpack will assume all files not having an extension are js files, but here we tell webpack if it comes accross a file with no extensions also try these as well.
-}
+  entry: './src/index.js',
+  output: {
+    path: path.join(__dirname, 'build'),
+    filename: 'bundle.js'
+  },
+  module: {
+    rules: [
+      {
+        use: 'babel-loader', //here we are selecting the loader 
+        test: /\.js$/ //and here we specify which file the loader will process 
+      }
+    ]
+  },
+  watch: true
+};
 ======
 
 3) run the webpack dev server by typing: "webpack-dev-server"
