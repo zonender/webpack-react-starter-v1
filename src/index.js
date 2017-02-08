@@ -1,22 +1,5 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { createStore, applyMiddleware } from 'redux';
-import { Provider } from 'react-redux';
-import ReduxThunk from 'redux-thunk';
-import reducers from './reducers';
-import Routes from './router';
-import '../style/materialize.css';
-import '../style/react-range.css';
-import '../style/style.css';
+const sum = require('./sum');
 
-const App = () => {
-  const store = createStore(reducers, {}, applyMiddleware(ReduxThunk));
+const total = sum(1, 2);
 
-  return (
-    <Provider store={store}>
-      <Routes />
-    </Provider>
-  );
-};
-
-ReactDOM.render(<App />, document.getElementById('root'));
+console.log(total);
