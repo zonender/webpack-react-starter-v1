@@ -1,7 +1,8 @@
-var webpack = require('webpack');
-var path = require('path');
+const webpack = require('webpack');
+const path = require('path');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-module.exports = {
+const config = {
   entry: './src/index.js',
   output: {
     path: path.join(__dirname, 'build'),
@@ -14,10 +15,16 @@ module.exports = {
         test: /\.js$/ //and here we specify which file the loader will process 
       },
       {
-        use: ['style-loader', 'css-loader'],
+        loader: ExtractTextPlugin.extract ({
+          loader: 'css-loader'
+        }),
         test: /\.css$/ //now any css file will be processed with both css and style loader
       }
     ]
   },
-  watch: false
+  plugins: [
+      new ExtractTextPlugin('style.css') // this will grap any css file produced by the css-loader and inserted into the style.css file
+    ]
 };
+
+module.exports = config;

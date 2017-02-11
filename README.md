@@ -246,13 +246,57 @@ webpack-dev-server
 ======
 
 
-LOADERS FOR PROCESSING CSS:
+HANDLING CSS WITH WEBPACK (ADDING CSS LOADERS AND INJECTING CSS INSIDE BUNDLE.JS):
 ===========================================================================
 ===========================================================================
 
-1) fist we have to install the css-loaders to teach webpack how to process css files.
+1) create the file image_viewer.js in the src folder with this code:
 
-2) then we have to install style-loader so that webpack is able to inject them into the html files.
+======
+const image = document.createElement('img');
+
+image.src = 'http://lorempixel.com/400/400'
+document.body.appendChild(image);
+======
+
+This will display a random image on the screen.
+
+2) Import the image viewer into the index.js file:
+
+======
+import sum from './sum';
+import './image_viewer'; //we use this from of import when the code we are importing is not 
+//producing/returning any value, the image viewr is just generating an image tag in the dom
+//also if we do not import this file it will not be executed.
+
+const total = sum(5, 15);
+
+const totaltext = document.createElement('p');
+totaltext.innerText = 'The total is:' + total
+document.body.appendChild(totaltext);
+======
+
+3) Adding css to the image, a red border, we do this by creating the file called image_viewer.css under a folder called styles under the src dir, in the file
+put this code:
+
+======
+img {
+    border: 10px solid red;
+}
+======
+
+4) now import the newly create css file into the image_viewer.js file like this:
+
+======
+import './styles/image_viewer.css';
+
+const image = document.createElement('img');
+
+image.src = 'http://lorempixel.com/400/400'
+document.body.appendChild(image);
+======
+
+5) now we have to install the css-loaders to teach webpack how to process and read css files and the style-loader so that webpack is able to inject them into the html files:
 
 ======
 npm install --save-dev css-loader style-loader
@@ -277,7 +321,7 @@ module.exports = {
         test: /\.js$/ //and here we specify which file the loader will process 
       },
       {
-        use: ['style-loader', 'css-loader'],
+        use: ['style-loader', 'css-loader'], //here the order matters loaders on the right will run first
         test: /\.css$/ //now any css file will be processed with both css and style loader
       }
     ]
@@ -286,9 +330,89 @@ module.exports = {
 };
 ======
 
+Webpack using css-loader and style-loader has included/injected the style inside the head tag of the index.html, the way it does this is as follows:
+
+The css-loader takes the css code and puts it inside bundle.js and then the style-loader adds its own code to the bundle.js file that injects the css to the dom.
+
+If you don't like this approach you can take another approach and let the loader creeate a separate css file instead of including it in the bundle.js file
+
 4) run: npm run build
 
 5) run: webpack-dev-server
 
+HANDLING CSS WITH WEBPACK (ADDING CSS LOADERS AND CREATING A SEPARATE CSS FILE (FASTER)):
+===========================================================================
+===========================================================================
 
+1) First we need to add the library called "extract-text-webpack-plugin": 
 
+======
+npm install extract-text-webpack-plugin --save-dev
+======
+
+if the latest version doesn't work use: npm install extract-text-webpack-plugin@2.0.0-beta.4 --save-dev
+
+or: npm install npm install extract-text-webpack-plugin@^2.0.0-beta --save-dev (This worked for me)
+
+2) we have to include the plugin/library inside the webpack config file, we will also rewrite the config file in ES6 module, the extract-text-webpack-plugin requires 
+we fall back to the legacy "loader" key/property instead of the "use" key, in webpack loaders are used for preprocessing and file transforation before including them in the bundle.js file
+while plugin usually do not include files in the bundle.js, the extract-text-webpack-plugin will grap any css file produced by the css-loader and insert it into the style.css file:
+
+======
+const webpack = require('webpack');
+const path = require('path');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+
+const config = {
+  entry: './src/index.js',
+  output: {
+    path: path.join(__dirname, 'build'),
+    filename: 'bundle.js'
+  },
+  module: {
+    rules: [
+      {
+        use: 'babel-loader', //here we are selecting the loader 
+        test: /\.js$/ //and here we specify which file the loader will process 
+      },
+      {
+        loader: ExtractTextPlugin.extract ({
+          loader: 'css-loader'
+        }),
+        test: /\.css$/ //now any css file will be processed with both css and style loader
+      }
+    ]
+  },
+  plugins: [
+      new ExtractTextPlugin('style.css') // this will grap any css file produced by the css-loader and inserted into the style.css file
+    ]
+};
+
+module.exports = config;
+======
+
+3) run:
+
+======
+npm run build
+======
+
+to create the build and the style.css file.
+
+4) Add a link tag in the index.html file, to reference the style.css file:
+
+======
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="build/style.css"></link>
+    <meta charset="UTF-8">
+    <title>Upstar Music</title>
+  </head>
+  <body>
+    <p>Hello Webpack!!!</p>
+    <div id="root"></div>
+  </body>
+  <script src="/build/bundle.js"></script>
+</html>
+======

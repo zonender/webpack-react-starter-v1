@@ -6,7 +6,7 @@
   "scripts": {
     "build": "webpack"
   },
-  "repository": "https://github.com/StephenGrider/WebpackProject",
+  "repository": "https://github.com/zonender/webpack2",
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -27,6 +27,7 @@
     "babel-preset-env": "^1.1.4",
     "babel-preset-react": "^6.16.0",
     "css-loader": "^0.26.1",
+    "extract-text-webpack-plugin": "^1.0.1",
     "style-loader": "^0.13.1",
     "webpack": "2.2.0-rc.0",
     "webpack-dev-server": "^2.3.0"

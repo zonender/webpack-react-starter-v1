@@ -1,4 +1,4 @@
-import '../styles/image_viewer.css';
+import './styles/image_viewer.css';
 
 const image = document.createElement('img');
 
