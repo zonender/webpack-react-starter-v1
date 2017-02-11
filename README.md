@@ -574,3 +574,82 @@ npm run build
 ======
 webpack-dev-server
 ======
+
+CODE SPLITTING WITH WEBPACK:
+===========================================================================
+===========================================================================
+
+1) fisrt we will adjust the code in the image_viewer.js module to return only the small image and we will also adjust the code so that instead of 
+displaying the image on the screen the instant the code is executed we export the function so we can call it anytime and anywhere we want, so basically
+we wrapped the logic that displays the image in a arrow function.
+
+======
+import small from '../assets/small.jpg';
+import './styles/image_viewer.css';
+
+export default () => {
+    const smallImage = document.createElement('img');
+    smallImage.src = small;
+    document.body.appendChild(smallImage);
+};
+======
+
+2) remove all the code under index.js and replace it with this one:
+
+======
+const button = document.createElement('button');
+button.innerText = 'Click me';
+button.onclick = () => {
+    System.import('./image_viewer').then(module => {
+        module.default();
+    });
+};
+
+document.body.appendChild(button);
+======
+
+on the click event a call is made asking the server to retreive the image_viewer.js module/code and execute it, note that if the image_viewer.js has its own 
+imports those imported modules/code will be pulled in as well.
+
+The click event triggers an asynchronous call (system.import('./image_viewer')) this will take time for the browser to reah out to the server and get that code, because this
+is an asynchronus call the (system.import('./image_viewer')) returns a promise and to get access to the image_viewer.js module/code we need to add .then so the
+code becomes: (system.import('./image_viewer').then), the .then will wait untill the server returns the code and store it in a module function, to see what this function will return 
+we can console.log it as follows then build the code and run the webpack server and then open the console then click the button to see the result of console.log(module):
+
+======
+const button = document.createElement('button');
+button.innerText = 'Click me';
+button.onclick = () => {
+    System.import('./image_viewer').then(module => {
+        console.log(module)
+    });
+};
+
+document.body.appendChild(button);
+======
+
+====================================================================================================
+PLEASE NOTE THAT: System.import with a capital S is not the same as system.import with lower case s.
+====================================================================================================
+
+Now we can change the code back to:
+
+======
+const button = document.createElement('button');
+button.innerText = 'Click me';
+button.onclick = () => {
+    System.import('./image_viewer').then(module => {
+        module.default();
+    });
+};
+
+document.body.appendChild(button);
+======
+
+3) build then run
+
+
+
+
+
+

@@ -1,11 +1,9 @@
-import sum from './sum';
-import './image_viewer'; //we use this from of import when the code we are importing is not 
-//producing/returning any value, the image viewr is just generating an image tag in the dom
-//also if we do not import this file it will not be executed.
+const button = document.createElement('button');
+button.innerText = 'Click me';
+button.onclick = () => {
+    System.import('./image_viewer').then(module => {
+        module.default();
+    });
+};
 
-const total = sum(5, 15);
-
-const totaltext = document.createElement('p');
-totaltext.innerText = 'The total is:' + total
-document.body.appendChild(totaltext);
-
+document.body.appendChild(button);
