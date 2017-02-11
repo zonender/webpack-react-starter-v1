@@ -416,3 +416,161 @@ to create the build and the style.css file.
   <script src="/build/bundle.js"></script>
 </html>
 ======
+
+HANDLING IMAGES WITH WEBPACK:
+===========================================================================
+===========================================================================
+
+The image image_viewer is currently relying on an outside source for it's images, which makes it lag, we will now see how to handle images locally and include them in our build pipeline.
+
+We will be using the image-webpack-loader, the loader will compress the image and include it in the bundle.js if it is small (smaller than 40000 bytes). and will output it to the build directory if the image is large.
+
+1) Install the loaders:
+
+======
+npm install --save-dev image-webpack-loader url-loader
+======
+
+2) edit the webpack config by adding the loaders:
+
+======
+const webpack = require('webpack');
+const path = require('path');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+
+const config = {
+  entry: './src/index.js',
+  output: {
+    path: path.join(__dirname, 'build'),
+    filename: 'bundle.js'
+  },
+  module: {
+    rules: [
+      {
+        use: 'babel-loader', //here we are selecting the loader 
+        test: /\.js$/ //and here we specify which file the loader will process 
+      },
+      {
+        loader: ExtractTextPlugin.extract ({
+          loader: 'css-loader'
+        }),
+        test: /\.css$/ //now any css file will be processed with both css and style loader
+      },
+      {
+        test: /\.(jpe?g|png|gif|svg)$/,
+        use: [
+          {
+            loader: 'url-loader',
+            options: {limit: 40000}
+          },
+          'image-webpack-loader'
+        ]
+      } 
+    ]
+  },
+  plugins: [
+      new ExtractTextPlugin('style.css') // this will grap any css file produced by the css-loader and inserted into the style.css file
+    ]
+};
+
+module.exports = config;
+======
+
+3) Download a small image from: http://lorempixel.com/200/200/ and a large image from http://lorempixel.com/1200/1200/ and save them to an assets directory
+located in the root that you must create.
+
+4) import these two images to the image_viewer.js file:
+
+======
+import big from '../assets/big.jpg'
+import small from '../assets/small.jpg'
+import './styles/image_viewer.css';
+
+const image = document.createElement('img');
+
+image.src = 'http://lorempixel.com/400/400'
+document.body.appendChild(image);
+======
+
+5) run the build:
+
+======
+npm run build
+======
+
+You will notice that the large jpg file has been added in the build directory because it exceeds 40000 bytes, and if you open the bundle.js file 
+and find the string: "data:image/jpeg;base64" you will notice that the image has been converted to a base64 string.
+
+6) to use the images edit the image_viewer.js as follows:
+
+======
+import big from '../assets/big.jpg';
+import small from '../assets/small.jpg';
+import './styles/image_viewer.css';
+
+const smallImage = document.createElement('img');
+smallImage.src = small;
+document.body.appendChild(smallImage);
+
+const bigImage = document.createElement('img');
+bigImage.src = big;
+document.body.appendChild(bigImage);
+======
+
+7) add the public path property to the webpack config file:
+
+======
+const webpack = require('webpack');
+const path = require('path');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+
+const config = {
+  entry: './src/index.js',
+  output: {
+    path: path.join(__dirname, 'build'),
+    filename: 'bundle.js',
+    publicPath: 'build/'
+  },
+  module: {
+    rules: [
+      {
+        use: 'babel-loader', //here we are selecting the loader 
+        test: /\.js$/ //and here we specify which file the loader will process 
+      },
+      {
+        loader: ExtractTextPlugin.extract ({
+          loader: 'css-loader'
+        }),
+        test: /\.css$/ //now any css file will be processed with both css and style loader
+      },
+      {
+        test: /\.(jpe?g|png|gif|svg)$/,
+        use: [
+          {
+            loader: 'url-loader',
+            options: { limit: 40000 }
+          },
+          'image-webpack-loader'
+        ]
+      } 
+    ]
+  },
+  plugins: [
+      new ExtractTextPlugin('style.css') // this will grap any css file produced by the css-loader and inserted into the style.css file
+    ]
+};
+
+module.exports = config;
+======
+
+8) run the build:
+
+======
+npm run build
+======
+
+9) run the webpack server:
+
+======
+webpack-dev-server
+======
