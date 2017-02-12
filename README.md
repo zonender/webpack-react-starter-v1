@@ -973,3 +973,25 @@ For windows:
 ======
 "build": "SET NODE_ENV=production npm run clean && webpack -p",
 ======
+
+DEPLOYMENT FOR STATIC SITES (USING SURGE):
+===========================================================================
+===========================================================================
+
+1) install surge cli:
+
+======
+npm install -g surge
+======
+
+2) run a build:
+
+======
+npm run build
+======
+
+3) run the command:
+
+======
+surge -p build
+======
