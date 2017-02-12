@@ -19,7 +19,12 @@
 /******/ 		if(parentJsonpFunction) parentJsonpFunction(chunkIds, moreModules, executeModules);
 /******/ 		while(resolves.length)
 /******/ 			resolves.shift()();
-
+/******/ 		if(executeModules) {
+/******/ 			for(i=0; i < executeModules.length; i++) {
+/******/ 				result = __webpack_require__(__webpack_require__.s = executeModules[i]);
+/******/ 			}
+/******/ 		}
+/******/ 		return result;
 /******/ 	};
 
 /******/ 	// The module cache
@@ -27,7 +32,7 @@
 
 /******/ 	// objects to store loaded and loading chunks
 /******/ 	var installedChunks = {
-/******/ 		1: 0
+/******/ 		3: 0
 /******/ 	};
 
 /******/ 	// The require function
@@ -75,7 +80,7 @@
 /******/ 		if (__webpack_require__.nc) {
 /******/ 			script.setAttribute("nonce", __webpack_require__.nc);
 /******/ 		}
-/******/ 		script.src = __webpack_require__.p + "" + chunkId + ".bundle.js";
+/******/ 		script.src = __webpack_require__.p + "" + chunkId + "" + {"0":"c28c4d73f8df3e27005e","1":"5cb0c308641e77b4f9e8","2":"fbc51f9f3fbc859290d8"}[chunkId] + ".js";
 /******/ 		var timeout = setTimeout(onScriptComplete, 120000);
 /******/ 		script.onerror = script.onload = onScriptComplete;
 /******/ 		function onScriptComplete() {
@@ -129,32 +134,10 @@
 /******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
 
 /******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "build/";
+/******/ 	__webpack_require__.p = "";
 
 /******/ 	// on error function for async loading
 /******/ 	__webpack_require__.oe = function(err) { console.error(err); throw err; };
-
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */,
-/* 1 */
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var button = document.createElement('button');
-button.innerText = 'Click me';
-button.onclick = function () {
-    __webpack_require__.e/* import() */(0).then(__webpack_require__.bind(null, 0)).then(function (module) {
-        module.default();
-    });
-};
-
-document.body.appendChild(button);
-
-/***/ }
-/******/ ]);
+/******/ ([]);

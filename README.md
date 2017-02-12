@@ -10,7 +10,7 @@ BASIC INSTALLATION AND USE:
 ===========================================================================
 ===========================================================================
 
-our project should include a scr folder with a simple index.js file with the following code:
+our project should include a src folder with a simple index.js file with the following code:
 
 =============
 const sum = require('./sum');
@@ -193,7 +193,7 @@ before using babel we have to install it:
 
 ======
 {
-  "presets": ["es2015"]
+    "presets": ["babel-preset-env", "react"]
 }
 ======
 
@@ -224,7 +224,8 @@ module.exports = {
     rules: [
       {
         use: 'babel-loader', //here we are selecting the loader 
-        test: /\.js$/ //and here we specify which file the loader will process 
+        test: /\.js$/, //and here we specify which file the loader will process
+        exclude: /node_modules/
       }
     ]
   },
@@ -648,8 +649,258 @@ document.body.appendChild(button);
 
 3) build then run
 
+ADVANCED FEATURES OF WEBPACK CODE SPLITTING USING THE VENDOR KEY:
+===========================================================================
+===========================================================================
 
+1) here we are splitting our code between two files, bundle.js and vendor.js.
 
+bundle.js will include all our app specific code and evey other code/modules it needs.
 
+vendor.js will include third party modules required to run our app, you will find these under the dependencies section of our package.json.
 
+modules under vendor.js will not be updated often, so if you have a third party module that you need to update often then include it in the bundle.js 
+by removing it from the VENDOR_LIBS array in the webpack.config.js file.
 
+however, if you are including/importing any module defined under the VENDOR_LIBS array in your entry point (index.js) webpack will still include these third party modules
+in the bundle.js on top of vendors.js even though we spedifically told webpack to do that in the VENDOR_LIBS array in the webpack.config.js file, this will create a duplication
+ of those modules in both bundle.js and vendor.js, to enforce this separation and make sure webpack includes these third party modules only in vendor.js and not dupliacte them
+ in the bundle.js we will have to use the plugin defined in the plugin section of the webpack config file.
+
+======
+const webpack = require('webpack');
+const path = require('path');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+
+//our app third party dependencies
+const VENDOR_LIBS = [
+  'faker', 'lodash', 'react', 'react-dom', 'react-input-range', 'react-redux',
+  'react-router', 'redux', 'redux-form', 'redux-thunk'
+];
+
+const config = {
+  entry: {
+    bundle: './src/index.js',
+    vendor: VENDOR_LIBS
+  },
+  output: {
+    path: path.join(__dirname, 'build'),
+    filename: '[name].js',
+    publicPath: 'build/'
+  },
+  module: {
+    rules: [
+      {
+        use: 'babel-loader', //here we are selecting the loader 
+        test: /\.js$/, //and here we specify which file the loader will process
+        exclude: /node_modules/
+      },
+      {
+        loader: ExtractTextPlugin.extract ({
+          loader: 'css-loader'
+        }),
+        test: /\.css$/ //now any css file will be processed with both css and style loader
+      },
+      {
+        test: /\.(jpe?g|png|gif|svg)$/,
+        use: [
+          {
+            loader: 'url-loader',
+            options: { limit: 40000 }
+          },
+          'image-webpack-loader'
+        ]
+      } 
+    ]
+  },
+  plugins: [
+      new ExtractTextPlugin('style.css'), // this will grap any css file produced by the css-loader and inserted into the style.css file
+      new webpack.optimize.CommonsChunkPlugin({
+        name: 'vendor'
+      })
+    ]
+};
+
+module.exports = config;
+======
+
+2) add both scripts to the html, make sure the vendors script comes before the bundle script:
+
+======
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="build/style.css"></link>
+    <meta charset="UTF-8">
+    <title>Upstar Music</title>
+  </head>
+  <body>
+    <p>Hello Webpack!!!</p>
+    <div id="root"></div>
+  </body>
+  <script src="/build/vendor.js"></script>
+  <script src="/build/bundle.js"></script>
+</html>
+======
+
+3) To avoid manually inserting the vendor and bundle files in the index.html we will use the plugin html-webpack-plugin, first we have to install it:
+
+======
+npm install --save-dev html-webpack-plugin
+======
+
+then include it in the webpack config file:
+
+======
+const webpack = require('webpack');
+const path = require('path');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const htmlWebpackPlugin = require('html-webpack-plugin');
+
+//our app third party dependencies
+const VENDOR_LIBS = [
+  'faker', 'lodash', 'react', 'react-dom', 'react-input-range', 'react-redux',
+  'react-router', 'redux', 'redux-form', 'redux-thunk'
+];
+
+const config = {
+  entry: {
+    bundle: './src/index.js',
+    vendor: VENDOR_LIBS
+  },
+  output: {
+    path: path.join(__dirname, 'build'),
+    filename: '[name].js',
+    publicPath: 'build/'
+  },
+  module: {
+    rules: [
+      {
+        use: 'babel-loader', //here we are selecting the loader 
+        test: /\.js$/, //and here we specify which file the loader will process
+        exclude: /node_modules/
+      },
+      {
+        loader: ExtractTextPlugin.extract ({
+          loader: 'css-loader'
+        }),
+        test: /\.css$/ //now any css file will be processed with both css and style loader
+      },
+      {
+        test: /\.(jpe?g|png|gif|svg)$/,
+        use: [
+          {
+            loader: 'url-loader',
+            options: { limit: 40000 }
+          },
+          'image-webpack-loader'
+        ]
+      } 
+    ]
+  },
+  plugins: [
+      // this will grap any css file produced by the css-loader and insert it into the style.css file
+      new ExtractTextPlugin('style.css'),
+      //this plugin will make sure there is no duplicate modules between vendor.js and bundle.js if there are it will remove them from bundle.js and put them in vendor.js
+      new webpack.optimize.CommonsChunkPlugin({
+            name: 'vendor'
+        }),
+      //this plugin will insert the script tags for bundle.js and vendor.js in our index.html
+      new htmlWebpackPlugin({
+            template: 'src/index.html' //if we do not specifiy a template, it will use the default one
+        })
+    ]
+};
+
+module.exports = config;
+======
+
+Now we can remove the scripts tags we were using, since the plugin will insert them for us in the correct order, we also moved the index.html file into the src directory.
+
+======
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="build/style.css"></link>
+    <meta charset="UTF-8">
+    <title>Upstar Music</title>
+  </head>
+  <body>
+    <p>Hello Webpack!!!</p>
+    <div id="root"></div>
+  </body>
+</html>
+======
+
+4) finally create the build and run the app.
+
+CACHE BUSTING:
+===========================================================================
+===========================================================================
+
+The browser will only download a file when its name changes, so by changing the name of bundle.js or vendor.js everytime we change these files we will make
+sure the browser will download the latest version, we do this by adding a hash to the file name:
+
+1) we add a chunkhash to the filename key as follows in the webpack config file:
+
+======
+const webpack = require('webpack');
+const path = require('path');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const htmlWebpackPlugin = require('html-webpack-plugin');
+
+//our app third party dependencies
+const VENDOR_LIBS = [
+  'faker', 'lodash', 'react', 'react-dom', 'react-input-range', 'react-redux',
+  'react-router', 'redux', 'redux-form', 'redux-thunk'
+];
+
+const config = {
+  entry: {
+    bundle: './src/index.js',
+    vendor: VENDOR_LIBS
+  },
+  output: {
+    path: path.join(__dirname, 'build'),
+    filename: '[name][chunkhash].js'
+    // publicPath: 'build/'
+  },
+  module: {
+    rules: [
+      {
+        use: 'babel-loader', //here we are selecting the loader 
+        test: /\.js$/, //and here we specify which file the loader will process
+        exclude: /node_modules/
+      },
+      {
+        use: ['style-loader', 'css-loader'],
+        test: /\.css$/ //now any css file will be processed with both css and style loader
+      },
+      {
+        test: /\.(jpe?g|png|gif|svg)$/,
+        use: [
+          {
+            loader: 'url-loader',
+            options: { limit: 40000 }
+          },
+          'image-webpack-loader'
+        ]
+      } 
+    ]
+  },
+  plugins: [
+      // this will grap any css file produced by the css-loader and insert it into the style.css file
+      new ExtractTextPlugin('style.css'),
+      //this plugin will make sure there is no duplicate modules between vendor.js and bundle.js if there are it will remove them from bundle.js and put them in vendor.js
+      new webpack.optimize.CommonsChunkPlugin({
+            names: ['vendor', 'manifest']
+        }),
+      //this plugin will insert the script tags for bundle.js and vendor.js in our index.html
+      new htmlWebpackPlugin({
+            template: 'src/index.html' //if we do not specifiy a template, it will use the default one
+        })
+    ]
+};
+
+module.exports = config;
+======
