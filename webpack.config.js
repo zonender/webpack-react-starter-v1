@@ -52,7 +52,10 @@ const config = {
       //this plugin will insert the script tags for bundle.js and vendor.js in our index.html
       new htmlWebpackPlugin({
             template: 'src/index.html' //if we do not specifiy a template, it will use the default one
-        })
+        }),
+      new webpack.DefinePlugin({
+        'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
+      })
     ]
 };
 

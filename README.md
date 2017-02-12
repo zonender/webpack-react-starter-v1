@@ -150,12 +150,11 @@ instead of the http protocal, to use the http protocal we will need to serve the
 npm install webpack-dev-server --save-dev 
 ======
 
-2) run the npm command:
+2) add an npm script:
 
 ======
-npm run build
+"serve": "webpack-dev-server"
 ======
-
 
 3) from within the project directory run:
 
@@ -180,6 +179,12 @@ module.exports = {
 	watch: true
 }
 ======
+
+Now webpack will watch our files, and it will automatically reload the page so we can see the update when we save, when we make these small changes it doesn't rebuild the whole project.
+
+also note that if u change webpack config file it won't automatically emit the changes to the browser, u will have to restart the webpack server.
+
+Also note that webpack server will build our project in memory, it doesn't really write to disk, it doesn't create the build directory.
 
 LOADERS FOR TRANSPILING ES6 TO ES5:
 ===========================================================================
@@ -924,3 +929,47 @@ npm install rimraf --save-dev
 "build": "npm run clean && webpack"
 ======
 
+PREPARING OUR APP FOR DEPLOYMENT:
+===========================================================================
+===========================================================================
+
+1) we add the following plugin to our webpack config file:
+
+when reactjs runs it looks for this window scoped variable called process.env.NODE_ENV, if the value of this varaible is production react will not do too many error checking procedures,
+which also takes too long to run.
+
+======
+      new webpack.DefinePlugin({
+        'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
+      })
+======
+
+2) Then we set the env variable during the build script in package.json:
+
+For iOS and Linux
+======
+"build": "NODE_ENV=production npm run clean && webpack",
+======
+
+For windows:
+======
+"build": "SET NODE_ENV=production npm run clean && webpack",
+======
+
+
+this is where we set the value of the variable: JSON.stringify(process.env.NODE_ENV)
+
+If we build the app without defining the variable process.env.NODE_ENV reactjs will run with full error checking 
+
+3) in the package.json build script we also need to add the switch -p, this tells webpack to run in production mode and create a production version of the app, when in 
+production mode, it will automatically minify our code and make the files smaller, it will also mean the build process will be longer.
+
+For iOS and Linux
+======
+"build": "NODE_ENV=production npm run clean && webpack -p",
+======
+
+For windows:
+======
+"build": "SET NODE_ENV=production npm run clean && webpack -p",
+======
