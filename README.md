@@ -904,3 +904,23 @@ const config = {
 
 module.exports = config;
 ======
+
+CLEANUP:
+===========================================================================
+===========================================================================
+
+As we keep rebuilding builds our build or dist directory will grow, so we have to clean it up before making any build. we will install rimraf:
+
+1) install rimraf:
+
+======
+npm install rimraf --save-dev
+======
+
+2) we will add an npm script:
+
+======
+"clean": "rimraf build"
+"build": "npm run clean && webpack"
+======
+
