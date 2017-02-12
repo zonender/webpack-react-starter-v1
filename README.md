@@ -302,7 +302,8 @@ image.src = 'http://lorempixel.com/400/400'
 document.body.appendChild(image);
 ======
 
-5) now we have to install the css-loaders to teach webpack how to process and read css files and the style-loader so that webpack is able to inject them into the html files:
+5) now we have to install the css-loaders to teach webpack how to process and read css files and the style-loader so that webpack is able 
+to inject them into the html files inside the head tag:
 
 ======
 npm install --save-dev css-loader style-loader
@@ -311,29 +312,65 @@ npm install --save-dev css-loader style-loader
 3) Then we have to configure webpack.config.js to process every css file with both the css-loader and the style-loader
 
 ======
-var webpack = require('webpack');
-var path = require('path');
+const webpack = require('webpack');
+const path = require('path');
+const htmlWebpackPlugin = require('html-webpack-plugin');
 
-module.exports = {
-  entry: './src/index.js',
+//our app third party dependencies
+const VENDOR_LIBS = [
+  'faker', 'lodash', 'react', 'react-dom', 'react-input-range', 'react-redux',
+  'react-router', 'redux', 'redux-form', 'redux-thunk'
+];
+
+const config = {
+  entry: {
+    bundle: './src/index.js',
+    vendor: VENDOR_LIBS
+  },
   output: {
     path: path.join(__dirname, 'build'),
-    filename: 'bundle.js'
+    filename: '[name][chunkhash].js'
+    // publicPath: 'build/'
   },
   module: {
     rules: [
       {
         use: 'babel-loader', //here we are selecting the loader 
-        test: /\.js$/ //and here we specify which file the loader will process 
+        test: /\.js$/, //and here we specify which file the loader will process
+        exclude: /node_modules/
       },
       {
-        use: ['style-loader', 'css-loader'], //here the order matters loaders on the right will run first
-        test: /\.css$/ //now any css file will be processed with both css and style loader
-      }
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
+      },
+      {
+        test: /\.(jpe?g|png|gif|svg)$/,
+        use: [
+          {
+            loader: 'url-loader',
+            options: { limit: 40000 }
+          },
+          'image-webpack-loader'
+        ]
+      } 
     ]
   },
-  watch: false
+  plugins: [
+      //this plugin will make sure there is no duplicate modules between vendor.js and bundle.js if there are it will remove them from bundle.js and put them in vendor.js
+      new webpack.optimize.CommonsChunkPlugin({
+            names: ['vendor', 'manifest']
+      }),
+      //this plugin will insert the script tags for bundle.js and vendor.js in our index.html
+      new htmlWebpackPlugin({
+            template: 'src/index.html' //if we do not specifiy a template, it will use the default one
+      }),
+      new webpack.DefinePlugin({
+        'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
+      })
+    ]
 };
+
+module.exports = config;
 ======
 
 Webpack using css-loader and style-loader has included/injected the style inside the head tag of the index.html, the way it does this is as follows:
@@ -368,29 +405,64 @@ while plugin usually do not include files in the bundle.js, the extract-text-web
 const webpack = require('webpack');
 const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const htmlWebpackPlugin = require('html-webpack-plugin');
+
+//our app third party dependencies
+const VENDOR_LIBS = [
+  'faker', 'lodash', 'react', 'react-dom', 'react-input-range', 'react-redux',
+  'react-router', 'redux', 'redux-form', 'redux-thunk'
+];
 
 const config = {
-  entry: './src/index.js',
+  entry: {
+    bundle: './src/index.js',
+    vendor: VENDOR_LIBS
+  },
   output: {
     path: path.join(__dirname, 'build'),
-    filename: 'bundle.js'
+    filename: '[name][chunkhash].js'
+    // publicPath: 'build/'
   },
   module: {
     rules: [
       {
         use: 'babel-loader', //here we are selecting the loader 
-        test: /\.js$/ //and here we specify which file the loader will process 
+        test: /\.js$/, //and here we specify which file the loader will process
+        exclude: /node_modules/
       },
       {
-        loader: ExtractTextPlugin.extract ({
-          loader: 'css-loader'
-        }),
-        test: /\.css$/ //now any css file will be processed with both css and style loader
-      }
+        test: /\.css$/,
+        loader:  ExtractTextPlugin.extract({loader: 'css-loader?importLoaders=1'})
+      },
+      {
+        test: /\.(jpe?g|png|gif|svg)$/,
+        use: [
+          {
+            loader: 'url-loader',
+            options: { limit: 40000 }
+          },
+          'image-webpack-loader'
+        ]
+      } 
     ]
   },
   plugins: [
-      new ExtractTextPlugin('style.css') // this will grap any css file produced by the css-loader and inserted into the style.css file
+      // this will grap any css file produced by the css-loader and insert it into the style.css file
+      new ExtractTextPlugin({
+      filename: '[name][chunkhash].css',
+      allChunks: true,
+      }),
+      //this plugin will make sure there is no duplicate modules between vendor.js and bundle.js if there are it will remove them from bundle.js and put them in vendor.js
+      new webpack.optimize.CommonsChunkPlugin({
+            names: ['vendor', 'manifest']
+      }),
+      //this plugin will insert the script tags for bundle.js and vendor.js in our index.html
+      new htmlWebpackPlugin({
+            template: 'src/index.html' //if we do not specifiy a template, it will use the default one
+      }),
+      new webpack.DefinePlugin({
+        'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
+      })
     ]
 };
 
@@ -411,15 +483,13 @@ to create the build and the style.css file.
 <!DOCTYPE html>
 <html>
   <head>
-    <link rel="stylesheet" href="build/style.css"></link>
     <meta charset="UTF-8">
     <title>Upstar Music</title>
   </head>
   <body>
-    <p>Hello Webpack!!!</p>
+    <p>Hello Webpack</p>
     <div id="root"></div>
   </body>
-  <script src="/build/bundle.js"></script>
 </html>
 ======
 
@@ -995,3 +1065,5 @@ npm run build
 ======
 surge -p build
 ======
+
+
